@@ -113,6 +113,16 @@ function initRoleBasedUI() {
     const allowedRoles = element.getAttribute('data-show-role').split(',').map(r => r.trim());
     if (allowedRoles.includes(user.role)) {
       element.style.display = '';
+    } else {
+      element.style.display = 'none';
+    }
+  });
+
+  // Hide elements for specific roles
+  document.querySelectorAll('[data-hide-role]').forEach(element => {
+    const hiddenRoles = element.getAttribute('data-hide-role').split(',').map(r => r.trim());
+    if (hiddenRoles.includes(user.role)) {
+      element.style.display = 'none';
     }
   });
 }
