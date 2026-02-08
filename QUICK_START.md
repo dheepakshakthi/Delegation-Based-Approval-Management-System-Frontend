@@ -27,7 +27,7 @@ Create a file named `.env` in the backend root with:
 ```env
 NODE_ENV=development
 PORT=5000
-MONGODB_URI=mongodb+srv://adminDatabase:Rb3395@dbams.kpdevvj.mongodb.net/DBAMS
+MONGODB_URI=:"your_mongodb_uri"
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 JWT_EXPIRE=7d
 JWT_COOKIE_EXPIRE=7
