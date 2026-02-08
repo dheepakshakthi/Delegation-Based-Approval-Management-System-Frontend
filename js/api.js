@@ -111,7 +111,8 @@ const authAPI = {
     const response = await api.post('/auth/login', { email, password }, false);
     if (response.success && response.token) {
       localStorage.setItem(APP_CONFIG.tokenKey, response.token);
-      localStorage.setItem(APP_CONFIG.userKey, JSON.stringify(response.data));
+      // Store the user object correctly (it's in response.user, not response.data)
+      localStorage.setItem(APP_CONFIG.userKey, JSON.stringify(response.user));
     }
     return response;
   },
@@ -120,7 +121,8 @@ const authAPI = {
     const response = await api.post('/auth/register', userData, false);
     if (response.success && response.token) {
       localStorage.setItem(APP_CONFIG.tokenKey, response.token);
-      localStorage.setItem(APP_CONFIG.userKey, JSON.stringify(response.data));
+      // Store the user object correctly (it's in response.user, not response.data)
+      localStorage.setItem(APP_CONFIG.userKey, JSON.stringify(response.user));
     }
     return response;
   },

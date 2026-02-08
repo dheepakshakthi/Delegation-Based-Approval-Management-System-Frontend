@@ -100,6 +100,8 @@ function initRoleBasedUI() {
   const user = getCurrentUser();
   if (!user) return;
 
+  console.log('Initializing RBAC for user:', user.name, 'Role:', user.role);
+
   // Hide elements that don't match user role
   document.querySelectorAll('[data-role]').forEach(element => {
     const allowedRoles = element.getAttribute('data-role').split(',').map(r => r.trim());
@@ -108,13 +110,17 @@ function initRoleBasedUI() {
     }
   });
 
-  // Show elements that match user role
+  // Show elements that match user role (with !important override)
   document.querySelectorAll('[data-show-role]').forEach(element => {
     const allowedRoles = element.getAttribute('data-show-role').split(',').map(r => r.trim());
+    console.log('Element:', element, 'Allowed roles:', allowedRoles, 'User role:', user.role);
     if (allowedRoles.includes(user.role)) {
-      element.style.display = '';
+      // For list items, use 'list-item', for others use 'block'
+      const displayValue = element.tagName === 'LI' ? 'list-item' : 'block';
+      element.style.setProperty('display', displayValue, 'important');
+      element.classList.add('role-visible');
     } else {
-      element.style.display = 'none';
+      element.style.setProperty('display', 'none', 'important');
     }
   });
 
