@@ -69,7 +69,7 @@ Complete guide for deploying both frontend and backend to Render.
    ```env
    NODE_ENV=production
    PORT=5000
-   MONGODB_URI=mongodb+srv://adminDatabase:Rb3395@dbams.kpdevvj.mongodb.net/DBAMS
+   MONGODB_URI="your_mongodb_uri"
    JWT_SECRET=your-very-secure-random-secret-key-here-minimum-32-characters
    JWT_EXPIRE=7d
    JWT_COOKIE_EXPIRE=7
