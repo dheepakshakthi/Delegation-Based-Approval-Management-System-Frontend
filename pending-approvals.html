@@ -66,6 +66,16 @@
       <div class="filter-section">
         <div class="row g-3">
           <div class="col-md-3">
+            <label for="filterStatus" class="form-label">Status</label>
+            <select class="form-select" id="filterStatus">
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+              <option value="">All Status</option>
+            </select>
+          </div>
+          
+          <div class="col-md-3">
             <label for="filterType" class="form-label">Type</label>
             <select class="form-select" id="filterType">
               <option value="">All Types</option>
@@ -78,7 +88,7 @@
             </select>
           </div>
           
-          <div class="col-md-3">
+          <div class="col-md-2">
             <label for="filterPriority" class="form-label">Priority</label>
             <select class="form-select" id="filterPriority">
               <option value="">All Priorities</option>
@@ -89,7 +99,7 @@
             </select>
           </div>
           
-          <div class="col-md-3">
+          <div class="col-md-2">
             <label for="sortBy" class="form-label">Sort By</label>
             <select class="form-select" id="sortBy">
               <option value="date">Date (Newest)</option>
@@ -98,7 +108,7 @@
             </select>
           </div>
           
-          <div class="col-md-3">
+          <div class="col-md-2">
             <label class="form-label">&nbsp;</label>
             <button class="btn btn-success w-100" onclick="loadPendingApprovals()">Apply Filters</button>
           </div>
@@ -107,7 +117,7 @@
 
       <!-- Pending Approvals Table -->
       <div class="card">
-        <div class="card-header">Requests Awaiting Your Approval</div>
+        <div class="card-header" id="tableHeader">Requests Awaiting Your Approval</div>
         <div class="card-body">
           <div id="approvalsContainer">
             <div class="text-center py-5">
@@ -189,22 +199,29 @@
       showLoading('approvalsContainer');
       
       try {
-        const response = await requestAPI.getPendingRequests();
+        // Get filter values
+        const status = document.getElementById('filterStatus').value;
+        const requestType = document.getElementById('filterType').value;
+        const priority = document.getElementById('filterPriority').value;
+        const sortBy = document.getElementById('sortBy').value;
+        
+        // Update card header based on status filter
+        const headerText = status === 'Approved' ? 'Approved Requests' : 
+                          status === 'Rejected' ? 'Rejected Requests' :
+                          status === '' ? 'All Requests' : 'Requests Awaiting Your Approval';
+        document.getElementById('tableHeader').textContent = headerText;
+        
+        // Build filter params
+        const params = {};
+        if (status) params.status = status;
+        if (requestType) params.requestType = requestType;
+        if (priority) params.priority = priority;
+        
+        // Fetch requests with filters
+        const response = await requestAPI.getRequests(params);
         
         if (response.success && response.data && response.data.length > 0) {
           let requests = response.data;
-          
-          // Apply filters
-          const requestType = document.getElementById('filterType').value;
-          const priority = document.getElementById('filterPriority').value;
-          const sortBy = document.getElementById('sortBy').value;
-          
-          if (requestType) {
-            requests = requests.filter(r => r.requestType === requestType);
-          }
-          if (priority) {
-            requests = requests.filter(r => r.priority === priority);
-          }
           
           // Sort requests
           if (sortBy === 'priority') {
@@ -232,6 +249,7 @@
                     <th>Requester</th>
                     <th>Type</th>
                     <th>Priority</th>
+                    <th>Status</th>
                     <th>Amount</th>
                     <th>Submitted</th>
                     <th>Actions</th>
@@ -248,13 +266,16 @@
                       <td>${request.requester?.name || 'N/A'}</td>
                       <td>${getRequestTypeBadge(request.requestType)}</td>
                       <td>${getPriorityBadge(request.priority)}</td>
+                      <td>${getStatusBadge(request.status)}</td>
                       <td>${request.amount ? formatCurrency(request.amount) : '-'}</td>
                       <td>${formatDate(request.submittedAt)}</td>
                       <td>
                         <div class="action-buttons">
                           <a href="request-details.html?id=${request._id}" class="btn btn-sm btn-outline-primary">View</a>
-                          <button class="btn btn-sm btn-success" onclick="showApproveModal('${request._id}', '${request.title}')">Approve</button>
-                          <button class="btn btn-sm btn-danger" onclick="showRejectModal('${request._id}')">Reject</button>
+                          ${request.status === 'Pending' ? `
+                            <button class="btn btn-sm btn-success" onclick="showApproveModal('${request._id}', '${request.title}')">Approve</button>
+                            <button class="btn btn-sm btn-danger" onclick="showRejectModal('${request._id}')">Reject</button>
+                          ` : ''}
                         </div>
                       </td>
                     </tr>
@@ -266,13 +287,16 @@
           
           hideLoading('approvalsContainer', html);
         } else {
-          showEmptyState('approvalsContainer', 'No pending approvals at this time');
+          const emptyMessage = status === 'Approved' ? 'No approved requests found' :
+                              status === 'Rejected' ? 'No rejected requests found' :
+                              status === '' ? 'No requests found' : 'No pending approvals at this time';
+          showEmptyState('approvalsContainer', emptyMessage);
         }
       } catch (error) {
-        console.error('Error loading pending approvals:', error);
+        console.error('Error loading requests:', error);
         hideLoading('approvalsContainer', `
           <div class="alert alert-danger">
-            Failed to load pending approvals. Please try again.
+            Failed to load requests. Please try again.
           </div>
         `);
       }
@@ -352,6 +376,7 @@
     });
 
     // Apply filters
+    document.getElementById('filterStatus').addEventListener('change', loadPendingApprovals);
     document.getElementById('filterType').addEventListener('change', loadPendingApprovals);
     document.getElementById('filterPriority').addEventListener('change', loadPendingApprovals);
     document.getElementById('sortBy').addEventListener('change', loadPendingApprovals);
